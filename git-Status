@@ -1,0 +1,21 @@
+#!/usr/bin/env python
+from subprocess import *
+import sys
+
+def main():
+    branchp = Popen(["git","symbolic-ref","HEAD"], stdout=PIPE)
+    ret = branchp.wait()
+    if ret != 0:
+        sys.exit(ret)
+    branch = branchp.stdout.read().strip()
+    print "Branch is",branch
+    if not branch.startswith("refs/heads/"):
+        print "Not a local head"
+        sys.exit(1)
+    branch = branch[11:]
+    print "Branch is",branch
+
+
+
+if __name__ == "__main__":
+    main()
