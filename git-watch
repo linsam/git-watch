@@ -21,13 +21,13 @@ def config(name):
         return None
     return val
 
-def doStatus(localBranch, remote, remoteBranch):
+def doStatus(localBranch, remoteBranch):
     """Based on stat_tracking_info from remote.c of the git distribution"""
     #print "Comparing our %s to %s's %s" % (localBranch, remote, remoteBranch)
     # TODO: This might hang if there are so many revs that the pipe fills up.
     #       Replace with a straight call to Popen and read lines from the pipe
     #       ourselves.
-    r, v = statval(["git", "rev-list", "--left-right", "%s...%s/%s" % (localBranch, remote, remoteBranch), "--"])
+    r, v = statval(["git", "rev-list", "--left-right", "%s...%s" % (localBranch, remoteBranch), "--"])
     if r != 0:
         #print "  Failed: %i" % r
         return
@@ -41,13 +41,13 @@ def doStatus(localBranch, remote, remoteBranch):
         else:
             raise Exception("Unexpected line '%s'" % line)
     if ours and not theirs:
-        print "You are ahead of '%s/%s' by %i commits" % (remote, remoteBranch, ours)
+        print "You are ahead of '%s' by %i commits" % (remoteBranch, ours)
     elif theirs and not ours:
-        print "You are behind '%s/%s' by %i commits" % (remote, remoteBranch, theirs)
+        print "You are behind '%s' by %i commits" % (remoteBranch, theirs)
     elif ours and theirs:
-        print "You have diverged from '%s/%s'. Ahead %i, behind %i" % (remote, remoteBranch, ours, theirs)
+        print "You have diverged from '%s'. Ahead %i, behind %i" % (remoteBranch, ours, theirs)
     else:
-        print "No difference to '%s/%s'" % (remote, remoteBranch)
+        print "No difference to '%s'" % (remoteBranch)
 
 def main():
     branch = valOrExit(["git", "symbolic-ref", "HEAD"])
@@ -70,18 +70,23 @@ def main():
                 print "confused by '%s', skipping" % m
                 continue
             m = m[11:]
-            doStatus(branch, remote, m)
+            # TODO: How do we know that the merge branch is stored in
+            #    refs/remotes/${remote}/${merge##refs/heads/}
+            # ? How does git resolve this?
+            doStatus(branch, "%s/%s" % (remote, m))
     if watch:
         for w in watch.split():
             if not ':' in w:
-                print "confused by lack of ':' in '%s', skipping" % w
-                continue
-            rem,rbranch = w.split(':', 1)
-            if not rbranch.startswith("refs/heads/"):
-                print "confused by '%s', skipping" % rbranch
-                continue
-            rbranch = rbranch[11:]
-            doStatus(branch, rem, rbranch)
+                doStatus(branch, w)
+            else:
+                # Old style, pretend we know how remotes are tracked
+                # TODO: Print deprecatino warning?
+                rem,rbranch = w.split(':', 1)
+                if not rbranch.startswith("refs/heads/"):
+                    print "confused by '%s', skipping" % rbranch
+                    continue
+                rbranch = rbranch[11:]
+                doStatus(branch, "%s/%s" % (rem, rbranch))
 
 
 
