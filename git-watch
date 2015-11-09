@@ -76,17 +76,7 @@ def main():
             doStatus(branch, "%s/%s" % (remote, m))
     if watch:
         for w in watch.split():
-            if not ':' in w:
-                doStatus(branch, w)
-            else:
-                # Old style, pretend we know how remotes are tracked
-                # TODO: Print deprecatino warning?
-                rem,rbranch = w.split(':', 1)
-                if not rbranch.startswith("refs/heads/"):
-                    print "confused by '%s', skipping" % rbranch
-                    continue
-                rbranch = rbranch[11:]
-                doStatus(branch, "%s/%s" % (rem, rbranch))
+            doStatus(branch, w)
 
 
 
