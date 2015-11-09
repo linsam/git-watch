@@ -32,6 +32,32 @@ This script will attempt to list information about regularly configured
 variables, and will then list information about each listed watch refspec.
 
 
+Installation
+------------
+
+Option 1:
+
+The script can be run as is with `python git-watch`.
+
+Option 2:
+
+It can be run more directly if made executable:
+
+```
+  chmod +x git-watch
+  ./git-watch
+```
+
+Option 3 (recommended):
+
+If you place it somewhere on your path, it can be run as a git
+subcommand:
+
+```
+  sudo cp git-watch /usr/local/bin
+  git watch
+```
+
 Example
 -------
 
@@ -45,14 +71,18 @@ All three have a master branch that they work on.
 Bob can run the following the watch the master branch of Alice and Jack
 (assuming the default fetch rules weren't changed):
 
+```
   git config --add branch.master.watch alice/master
   git config --add branch.master.watch jack/master
+```
 
 Now "git watch" will list something like
 
+```
   Branch is master
   You are behind 'alice/master' by 3 commits
   You have diverged from 'jack/master'. Ahead 1, behind 2
+```
 
 This can also watch other local branches (e.g. comparing master to next), or
 any refspec (watch a tag, or a specific commit sha1). 
