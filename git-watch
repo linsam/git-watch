@@ -42,22 +42,17 @@ def config(name):
 def doStatus(localBranch, remoteBranch):
     """Based on stat_tracking_info from remote.c of the git distribution"""
     #print "Comparing our %s to %s's %s" % (localBranch, remote, remoteBranch)
-    # TODO: This might hang if there are so many revs that the pipe fills up.
-    #       Replace with a straight call to Popen and read lines from the pipe
-    #       ourselves.
-    r, v = statval(["git", "rev-list", "--left-right", "%s...%s" % (localBranch, remoteBranch), "--"])
-    if r != 0:
-        #print "  Failed: %i" % r
-        return
+    handle = Popen(["git", "rev-list", "--left-right", "%s...%s" % (localBranch, remoteBranch), "--"], stdout=PIPE)
     ours = 0
     theirs = 0
-    for line in v.split():
+    for line in handle.stdout:
         if line[0] == ">":
             theirs += 1
         elif line[0] == "<":
             ours += 1
         else:
             raise Exception("Unexpected line '%s'" % line)
+    res = handle.wait()
     if ours and not theirs:
         print "You are ahead of '%s' by %i commits" % (remoteBranch, ours)
     elif theirs and not ours:
@@ -66,6 +61,7 @@ def doStatus(localBranch, remoteBranch):
         print "You have diverged from '%s'. Ahead %i, behind %i" % (remoteBranch, ours, theirs)
     else:
         print "No difference to '%s'" % (remoteBranch)
+    return res
 
 def main():
     branch = valOrExit(["git", "symbolic-ref", "HEAD"])
