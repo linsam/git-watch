@@ -53,6 +53,8 @@ def doStatus(localBranch, remoteBranch):
         else:
             raise Exception("Unexpected line '%s'" % line)
     res = handle.wait()
+    if res != 0:
+        return res
     if ours and not theirs:
         print "You are ahead of '%s' by %i commits" % (remoteBranch, ours)
     elif theirs and not ours:
